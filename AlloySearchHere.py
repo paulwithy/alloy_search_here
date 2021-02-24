@@ -198,28 +198,34 @@ class SaveAttributes:
       loginurl = "https://api.uk.alloyapp.io/api/session"
       data = {"email":self.dlg.lineEditUser.text(),"password":self.dlg.lineEditPass.text()}
       headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-      r = requests.post(loginurl, data=json.dumps(data), headers=headers)
-      if len(r.content) != 48:
+      try:
+       r = requests.post(loginurl, data=json.dumps(data), headers=headers)
+       if len(r.content) != 48:
+        self.iface.messageBar().pushMessage(
+         "User name and or password are incorrect",
+         level=Qgis.Success, duration=7)
+       elif len(r.content) == 48:
+        masterse = json.loads((str(r.content).replace("b'","'")).replace("\'",''))
+        masterse['token']
+        
+        customerurl = 'https://api.uk.alloyapp.io/api/customer?token='+masterse['token']+'&RetrieveLastSeenDate=true&Page=1&PageSize=100'
+        customerdetails = urllib.request.urlopen(customerurl)
+        customerdetail = customerdetails.read().decode('utf-8')
+        jscustdetail = json.loads(customerdetail)
+        customercode = jscustdetail['results'][0]['code']
+        
+        newsessionurl = 'https://api.uk.alloyapp.io/api/session/customer/'+customercode+'?token='+masterse['token']
+        data1 = {}
+        r2 = requests.post(newsessionurl, data=json.dumps(data1), headers=headers)
+        newsessionr = json.loads((str(r2.content).replace("b'","'")).replace("\'",''))
+        newsessionr['token']
+        self.dlg.lineEdit.setText(newsessionr['token'])
+        self.dlg.label_7.setText('Login Successful')
+      except:
        self.iface.messageBar().pushMessage(
-        "User name and or password are incorrect",
+        "Connection failed check proxy",
         level=Qgis.Success, duration=7)
-      elif len(r.content) == 48:
-       masterse = json.loads((str(r.content).replace("b'","'")).replace("\'",''))
-       masterse['token']
-       
-       customerurl = 'https://api.uk.alloyapp.io/api/customer?token='+masterse['token']+'&RetrieveLastSeenDate=true&Page=1&PageSize=100'
-       customerdetails = urllib.request.urlopen(customerurl)
-       customerdetail = customerdetails.read().decode('utf-8')
-       jscustdetail = json.loads(customerdetail)
-       customercode = jscustdetail['results'][0]['code']
-       
-       newsessionurl = 'https://api.uk.alloyapp.io/api/session/customer/'+customercode+'?token='+masterse['token']
-       data1 = {}
-       r2 = requests.post(newsessionurl, data=json.dumps(data1), headers=headers)
-       newsessionr = json.loads((str(r2.content).replace("b'","'")).replace("\'",''))
-       newsessionr['token']
-       self.dlg.lineEdit.setText(newsessionr['token'])
-       self.dlg.label_7.setText('Login Successful')
+
 
     def GetAlloyLayers(self):
      if self.dlg.label_7.text() == 'Not Logged In':
