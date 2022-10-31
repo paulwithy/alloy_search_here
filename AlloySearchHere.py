@@ -34,6 +34,7 @@ from qgis.core import QgsCoordinateReferenceSystem
 from qgis.core import *
 from qgis.utils import iface
 import requests
+from urllib.request import Request, urlopen
 import math
 
 # Initialize Qt resources from file resources.py
@@ -206,19 +207,17 @@ class SaveAttributes:
          level=Qgis.Success, duration=7)
        elif len(r.content) == 48:
         masterse = json.loads((str(r.content).replace("b'","'")).replace("\'",''))
-        masterse['token']
-        
-        customerurl = 'https://api.uk.alloyapp.io/api/customer?token='+masterse['token']+'&RetrieveLastSeenDate=true&Page=1&PageSize=100'
-        customerdetails = urllib.request.urlopen(customerurl)
+        customerurl = 'https://api.uk.alloyapp.io/api/customer?&RetrieveLastSeenDate=true&Page=1&PageSize=100'
+        headers2 = {'Content-type': 'application/json', 'Accept': 'text/plain', 'token': masterse['token']}
+        requestwh = Request(customerurl, headers=headers2)
+        customerdetails = urllib.request.urlopen(requestwh)
         customerdetail = customerdetails.read().decode('utf-8')
         jscustdetail = json.loads(customerdetail)
         customercode = jscustdetail['results'][0]['code']
-        
-        newsessionurl = 'https://api.uk.alloyapp.io/api/session/customer/'+customercode+'?token='+masterse['token']
+        newsessionurl = 'https://api.uk.alloyapp.io/api/session/customer/'+customercode+'?'
         data1 = {}
-        r2 = requests.post(newsessionurl, data=json.dumps(data1), headers=headers)
+        r2 = requests.post(newsessionurl, data=json.dumps(data1), headers=headers2)
         newsessionr = json.loads((str(r2.content).replace("b'","'")).replace("\'",''))
-        newsessionr['token']
         self.dlg.lineEdit.setText(newsessionr['token'])
         self.dlg.label_7.setText('Login Successful')
         semail = QgsSettings()
@@ -236,12 +235,14 @@ class SaveAttributes:
      elif self.dlg.label_7.text() != 'Not Logged In':
        self.dlg.comboBoxLayers.clear()
        APIkey = self.dlg.lineEdit.text()
+       APIheader = {'Content-type': 'application/json', 'Accept': 'text/plain', 'token': APIkey}
        if self.dlg.horizontalSlider.value() == 0:
         Lrtype = 'network'
        elif self.dlg.horizontalSlider.value() == 1:
         Lrtype = 'cluster'
-       userlayerurl = 'https://api.uk.alloyapp.io/api/layer?Context=Customer&Visualisations='+Lrtype+'&PageSize=100&token='+APIkey
-       jresp = urllib.request.urlopen(userlayerurl)
+       userlayerurl = 'https://api.uk.alloyapp.io/api/layer?Context=Customer&Visualisations='+Lrtype+'&PageSize=100'
+       userlayerurlr = Request(userlayerurl, headers=APIheader)
+       jresp = urllib.request.urlopen(userlayerurlr)
        rawresp = jresp.read().decode('utf-8')
        avLayer = json.loads(rawresp)
        testtable= {"name": [],"code": []}
@@ -262,12 +263,14 @@ class SaveAttributes:
          level=Qgis.Success, duration=7)
      elif self.dlg.label_7.text() != 'Not Logged In':
       APIkey = self.dlg.lineEdit.text()
+      APIheader = {'Content-type': 'application/json', 'Accept': 'text/plain', 'token': APIkey}
       if self.dlg.horizontalSlider.value() == 0:
        Lrtype = 'network'
       elif self.dlg.horizontalSlider.value() == 1:
        Lrtype = 'cluster'
-      userlayerurl = 'https://api.uk.alloyapp.io/api/layer?Context=Customer&Visualisations='+Lrtype+'&PageSize=100&token='+APIkey
-      jresp = urllib.request.urlopen(userlayerurl)
+      userlayerurl = 'https://api.uk.alloyapp.io/api/layer?Context=Customer&Visualisations='+Lrtype+'&PageSize=100'
+      userlayerurlr = Request(userlayerurl, headers=APIheader)
+      jresp = urllib.request.urlopen(userlayerurlr)
       rawresp = jresp.read().decode('utf-8')
       avLayer = json.loads(rawresp)
       testtable= {"name": [],"code": []}
@@ -292,9 +295,10 @@ class SaveAttributes:
        min = xform.transform(QgsPointXY(iface.mapCanvas().extent().center().x(),iface.mapCanvas().extent().center().y()))
        mpx = str((round(pow(2, zoom)*((min.x()) + 180) / 360))-1) + '/'
        mpy = str(round(pow(2, zoom)*(1 - log(tan(radians(min.y())) + 1/cos((radians(min.y())))) / pi) / 2)-1)+'/'
-      type = Lrtype+'?'+'token='
-      LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type+APIkey
-      json_response = urllib.request.urlopen(LayerURL)
+      type = Lrtype+'?'
+      LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type
+      LayerURLr = Request(LayerURL, headers=APIheader)
+      json_response = urllib.request.urlopen(LayerURLr)
       rawresponse = json_response.read().decode('utf-8')
       testres = "'"+rawresponse+"'"
       testnul = "'"+'{"results":[]}'+"'"
@@ -310,8 +314,9 @@ class SaveAttributes:
         min = xform.transform(QgsPointXY(iface.mapCanvas().extent().center().x(),iface.mapCanvas().extent().center().y()))
         mpx = str((round(pow(2, zoom)*((min.x()) + 180) / 360))) + '/'
         mpy = str(round(pow(2, zoom)*(1 - log(tan(radians(min.y())) + 1/cos((radians(min.y())))) / pi) / 2))+'/'
-        LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type+APIkey
-        json_response2 = urllib.request.urlopen(LayerURL)
+        LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type
+        LayerURLr = Request(LayerURL, headers=APIheader)
+        json_response2 = urllib.request.urlopen(LayerURLr)
         rawresponse2 = json_response2.read().decode('utf-8')
         jload2 = json.loads(rawresponse2.replace("\'",''))
         for r in jload2['results']:
@@ -321,8 +326,9 @@ class SaveAttributes:
         min = xform.transform(QgsPointXY(iface.mapCanvas().extent().center().x(),iface.mapCanvas().extent().center().y()))
         mpx = str((round(pow(2, zoom)*((min.x()) + 180) / 360))) + '/'
         mpy = str(round(pow(2, zoom)*(1 - log(tan(radians(min.y())) + 1/cos((radians(min.y())))) / pi) / 2)-1)+'/'
-        LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type+APIkey
-        json_response2 = urllib.request.urlopen(LayerURL)
+        LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type
+        LayerURLr = Request(LayerURL, headers=APIheader)
+        json_response2 = urllib.request.urlopen(LayerURLr)
         rawresponse2 = json_response2.read().decode('utf-8')
         jload2 = json.loads(rawresponse2.replace("\'",''))
         for r in jload2['results']:
@@ -332,8 +338,9 @@ class SaveAttributes:
         min = xform.transform(QgsPointXY(iface.mapCanvas().extent().center().x(),iface.mapCanvas().extent().center().y()))
         mpx = str((round(pow(2, zoom)*((min.x()) + 180) / 360))-1) + '/'
         mpy = str(round(pow(2, zoom)*(1 - log(tan(radians(min.y())) + 1/cos((radians(min.y())))) / pi) / 2)-1)+'/'
-        LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type+APIkey
-        json_response2 = urllib.request.urlopen(LayerURL)
+        LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type
+        LayerURLr = Request(LayerURL, headers=APIheader)
+        json_response2 = urllib.request.urlopen(LayerURLr)
         rawresponse2 = json_response2.read().decode('utf-8')
         jload2 = json.loads(rawresponse2.replace("\'",''))
         for r in jload2['results']:
@@ -344,8 +351,9 @@ class SaveAttributes:
         min = xform.transform(QgsPointXY(iface.mapCanvas().extent().center().x(),iface.mapCanvas().extent().center().y()))
         mpx = str((round(pow(2, zoom)*((min.x()) + 180) / 360))) + '/'
         mpy = str(round(pow(2, zoom)*(1 - log(tan(radians(min.y())) + 1/cos((radians(min.y())))) / pi) / 2)-1)+'/'
-        LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type+APIkey
-        json_response2 = urllib.request.urlopen(LayerURL)
+        LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type
+        LayerURLr = Request(LayerURL, headers=APIheader)
+        json_response2 = urllib.request.urlopen(LayerURLr)
         rawresponse2 = json_response2.read().decode('utf-8')
         jload2 = json.loads(rawresponse2.replace("\'",''))
         for r in jload2['results']:
@@ -355,8 +363,9 @@ class SaveAttributes:
          min = xform.transform(QgsPointXY(iface.mapCanvas().extent().center().x(),iface.mapCanvas().extent().center().y()))
          mpx = str((round(pow(2, zoom)*((min.x()) + 180) / 360))) + '/'
          mpy = str(round(pow(2, zoom)*(1 - log(tan(radians(min.y())) + 1/cos((radians(min.y())))) / pi) / 2))+'/'
-        LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type+APIkey
-        json_response2 = urllib.request.urlopen(LayerURL)
+        LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type
+        LayerURLr = Request(LayerURL, headers=APIheader)
+        json_response2 = urllib.request.urlopen(LayerURLr)
         rawresponse2 = json_response2.read().decode('utf-8')
         jload2 = json.loads(rawresponse2.replace("\'",''))
         for r in jload2['results']:
@@ -366,8 +375,9 @@ class SaveAttributes:
          min = xform.transform(QgsPointXY(iface.mapCanvas().extent().center().x(),iface.mapCanvas().extent().center().y()))
          mpx = str((round(pow(2, zoom)*((min.x()) + 180) / 360))-1) + '/'
          mpy = str(round(pow(2, zoom)*(1 - log(tan(radians(min.y())) + 1/cos((radians(min.y())))) / pi) / 2))+'/'
-        LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type+APIkey
-        json_response2 = urllib.request.urlopen(LayerURL)
+        LayerURL = Starturl+LayerS+mpx+mpy+mpzoom+type
+        LayerURLr = Request(LayerURL, headers=APIheader)
+        json_response2 = urllib.request.urlopen(LayerURLr)
         rawresponse2 = json_response2.read().decode('utf-8')
         jload2 = json.loads(rawresponse2.replace("\'",''))
         for r in jload2['results']:
@@ -462,6 +472,7 @@ class SaveAttributes:
          level=Qgis.Success, duration=7)
      elif self.dlg.label_7.text() != 'Not Logged In':
         APIkey = self.dlg.lineEdit.text()
+        headers2 = {'Content-type': 'application/json', 'Accept': 'text/plain', 'token': APIkey}
         try:
          feats = iface.mapCanvas().currentLayer().selectedFeatures()
          if iface.mapCanvas().currentLayer().selectedFeatureCount() == 0:
@@ -471,8 +482,9 @@ class SaveAttributes:
          elif iface.mapCanvas().currentLayer().selectedFeatureCount() != 0:
           try:
            if len(feats[0]['designCode']) >= 1:
-            customerurl = 'https://api.uk.alloyapp.io/api/item/'+feats[0]['itemid']+'?token='+APIkey
-            customerdetails = urllib.request.urlopen(customerurl)
+            customerurl = 'https://api.uk.alloyapp.io/api/item/'+feats[0]['itemid']+'?'
+            customerurlr = Request(customerurl, headers=headers2)
+            customerdetails = urllib.request.urlopen(customerurlr)
             customerdetail = customerdetails.read().decode('utf-8')
             jscustdetail = json.loads(customerdetail)
             AlloyItem= {"attribute": [],"value": []}
@@ -518,12 +530,12 @@ class SaveAttributes:
           self.dlg.progressBar.setValue(progr)
           try:
            if len(feats[0]['designCode']) >= 1:
-            staturl = 'https://api.uk.alloyapp.io/api/aqs/statistics?token='+APIkey
+            staturl = 'https://api.uk.alloyapp.io/api/aqs/statistics?'
             stataqs = '{"aqs":{"type":"StatisticsAggregation","properties":{"dodiCode":"'+feats[0]['designCode']+'","collectionCode":["Live"],"aggregationType":"Count"}}}'
-            aqs = '{"aqs":{"type":"Join","properties":{"attributes":["all"],"collectionCode":["Live"],"dodiCode":"'+feats[0]['designCode']+'","joinAttributes":[]},"children":[{"type":"Exists","children":[{"type":"Attribute","properties":{"attributeCode":"attributes_itemsGeometry"}}]}]},"parameterValues":[]}'
+            aqsall = '{"aqs":{"type":"Join","properties":{"attributes":["all"],"collectionCode":["Live"],"dodiCode":"'+feats[0]['designCode']+'","joinAttributes":[]},"children":[{"type":"Exists","children":[{"type":"Attribute","properties":{"attributeCode":"attributes_itemsGeometry"}}]}]},"parameterValues":[]}'
+            aqs = '{"aqs":{"type":"Join","properties":{"attributes":["attributes_itemsTitle","attributes_itemsSubtitle","attributes_itemsGeometry"],"collectionCode":["Live"],"dodiCode":"'+feats[0]['designCode']+'","joinAttributes":[]},"children":[{"type":"Exists","children":[{"type":"Attribute","properties":{"attributeCode":"attributes_itemsGeometry"}}]}]},"parameterValues":[]}'
             statdata  = json.loads(stataqs)
-            data = json.loads(aqs)
-            headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+            headers = {'Content-type': 'application/json', 'Accept': 'text/plain', 'token': APIkey}
             tempc = {'results':[]}
             sr = requests.post(staturl, data=json.dumps(statdata), headers=headers)
             srjload = json.loads((str(sr.content).replace("b'","'")).replace("\'",''))
@@ -536,7 +548,11 @@ class SaveAttributes:
             returnValue = msgBox.exec()
             if returnValue == QMessageBox.Ok:
              while True:
-              url = "https://api.uk.alloyapp.io/api/aqs/join?Page="+str(page)+"&PageSize=100&token="+APIkey
+              url = "https://api.uk.alloyapp.io/api/aqs/join?Page="+str(page)+"&PageSize=100&"
+              if self.dlg.horizontalSlider_2.value() == 0:
+               data = json.loads(aqs)
+              elif self.dlg.horizontalSlider.value() == 1:
+               data = json.loads(aqsall)
               r = requests.post(url, data=json.dumps(data), headers=headers)
               if r.status_code == 200:
                try:
