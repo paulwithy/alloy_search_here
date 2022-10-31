@@ -6,7 +6,7 @@
 name=Alloy Search Here
 qgisMinimumVersion=3.0
 description=Searches the current map for Alloy items
-version=1.4
+version=1.6
 author=Paul Withington
 email=pwithy@hotmail.com
 
@@ -20,7 +20,7 @@ repository=https://github.com/paulwithy/alloy_search_here
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-# changelog=added get item detail and export layer(as beta)
+# changelog=added slider to allow user to only download title and subtitle or choose to try for all attributes. this limits the likelihood of issues with special characters. 
 
 # Tags are comma separated with spaces allowed
 tags=python
