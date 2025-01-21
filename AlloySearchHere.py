@@ -208,7 +208,7 @@ class SaveAttributes:
        elif len(r.content) == 48:
         masterse = json.loads((str(r.content).replace("b'","'")).replace("\'",''))
         customerurl = 'https://api.uk.alloyapp.io/api/customer?&RetrieveLastSeenDate=true&Page=1&PageSize=100'
-        headers2 = {'Content-type': 'application/json', 'Accept': 'text/plain', 'token': masterse['token']}
+        headers2 = {'Content-type': 'application/json', 'Accept': 'text/plain', 'Authorization': 'Bearer '+masterse['token']}
         requestwh = Request(customerurl, headers=headers2)
         customerdetails = urllib.request.urlopen(requestwh)
         customerdetail = customerdetails.read().decode('utf-8')
@@ -235,7 +235,7 @@ class SaveAttributes:
      elif self.dlg.label_7.text() != 'Not Logged In':
        self.dlg.comboBoxLayers.clear()
        APIkey = self.dlg.lineEdit.text()
-       APIheader = {'Content-type': 'application/json', 'Accept': 'text/plain', 'token': APIkey}
+       APIheader = {'Content-type': 'application/json', 'Accept': 'text/plain', 'Authorization': 'Bearer '+APIkey}
        if self.dlg.horizontalSlider.value() == 0:
         Lrtype = 'network'
        elif self.dlg.horizontalSlider.value() == 1:
@@ -263,7 +263,7 @@ class SaveAttributes:
          level=Qgis.Success, duration=7)
      elif self.dlg.label_7.text() != 'Not Logged In':
       APIkey = self.dlg.lineEdit.text()
-      APIheader = {'Content-type': 'application/json', 'Accept': 'text/plain', 'token': APIkey}
+      APIheader = {'Content-type': 'application/json', 'Accept': 'text/plain', 'Authorization': 'Bearer '+APIkey}
       if self.dlg.horizontalSlider.value() == 0:
        Lrtype = 'network'
       elif self.dlg.horizontalSlider.value() == 1:
@@ -472,7 +472,7 @@ class SaveAttributes:
          level=Qgis.Success, duration=7)
      elif self.dlg.label_7.text() != 'Not Logged In':
         APIkey = self.dlg.lineEdit.text()
-        headers2 = {'Content-type': 'application/json', 'Accept': 'text/plain', 'token': APIkey}
+        headers2 = {'Content-type': 'application/json', 'Accept': 'text/plain', 'Authorization': 'Bearer '+APIkey}
         try:
          feats = iface.mapCanvas().currentLayer().selectedFeatures()
          if iface.mapCanvas().currentLayer().selectedFeatureCount() == 0:
@@ -535,7 +535,7 @@ class SaveAttributes:
             aqsall = '{"aqs":{"type":"Join","properties":{"attributes":["all"],"collectionCode":["Live"],"dodiCode":"'+feats[0]['designCode']+'","joinAttributes":[]},"children":[{"type":"Exists","children":[{"type":"Attribute","properties":{"attributeCode":"attributes_itemsGeometry"}}]}]},"parameterValues":[]}'
             aqs = '{"aqs":{"type":"Join","properties":{"attributes":["attributes_itemsTitle","attributes_itemsSubtitle","attributes_itemsGeometry"],"collectionCode":["Live"],"dodiCode":"'+feats[0]['designCode']+'","joinAttributes":[]},"children":[{"type":"Exists","children":[{"type":"Attribute","properties":{"attributeCode":"attributes_itemsGeometry"}}]}]},"parameterValues":[]}'
             statdata  = json.loads(stataqs)
-            headers = {'Content-type': 'application/json', 'Accept': 'text/plain', 'token': APIkey}
+            headers = {'Content-type': 'application/json', 'Accept': 'text/plain', 'Authorization': 'Bearer '+APIkey}
             tempc = {'results':[]}
             sr = requests.post(staturl, data=json.dumps(statdata), headers=headers)
             srjload = json.loads((str(sr.content).replace("b'","'")).replace("\'",''))
